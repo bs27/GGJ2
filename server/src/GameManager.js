@@ -91,6 +91,9 @@ class GameManager {
             }
         }
 
+        // Remove player's drawing from the drawings array
+        this.drawings = this.drawings.filter(d => d.id !== socketId);
+
         this.players.delete(socketId);
     }
 
@@ -113,21 +116,21 @@ class GameManager {
 
         // Form squads of exactly squadSize players
         const numSquads = Math.floor(playerList.length / this.squadSize);
-        
+
         for (let squadIdx = 0; squadIdx < numSquads; squadIdx++) {
             const squadId = `squad_${squadIdx + 1}`;
             const squad = new Squad(squadId, this.squadSize);
-            
+
             const startIdx = squadIdx * this.squadSize;
             const endIdx = startIdx + this.squadSize;
-            
+
             for (let i = startIdx; i < endIdx; i++) {
                 const player = playerList[i];
                 squad.addPlayer(player);
                 player.squad = squadId;
                 this.players.set(player.id, player);
             }
-            
+
             this.squads.set(squadId, squad);
         }
 
@@ -222,7 +225,7 @@ class GameManager {
             }
             this.formSquads();
         }
-        
+
         this.phase = newPhase;
 
         if (newPhase === 'heist') {
@@ -234,7 +237,7 @@ class GameManager {
                 squad.setMinigame('signal_jammer');
                 squad.setView('signal_jammer');
             });
-            
+
             // Broadcast initial leaderboard
             this.io.to('gm').emit('leaderboard_update', this.getLeaderboard());
         }
@@ -278,7 +281,7 @@ class GameManager {
         const squadNames = ['ALPHA', 'BRAVO', 'CHARLIE', 'DELTA', 'ECHO', 'FOXTROT', 'GOLF', 'HOTEL', 'INDIA', 'JULIET'];
         const leaderboard = [];
         let index = 0;
-        
+
         this.squads.forEach((squad, squadId) => {
             // Calculate progress percentage based on view
             let progressPercent = 0;
@@ -293,7 +296,7 @@ class GameManager {
                 case 'complete': progressPercent = 100; break;
                 default: progressPercent = 0;
             }
-            
+
             leaderboard.push({
                 id: squadId,
                 name: squadNames[index] || `SQUAD ${index + 1}`,
@@ -307,7 +310,7 @@ class GameManager {
             });
             index++;
         });
-        
+
         // Sort: completed squads by position, then incomplete by progress
         leaderboard.sort((a, b) => {
             if (a.isComplete && b.isComplete) {
@@ -317,7 +320,7 @@ class GameManager {
             if (b.isComplete) return 1;
             return b.progressPercent - a.progressPercent;
         });
-        
+
         return leaderboard;
     }
 
