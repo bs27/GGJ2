@@ -97,47 +97,44 @@ class GameManager {
     /**
      * Assign all registered players into circular squads
      * Called when game starts (transitions from lobby to chain phase)
+     * Assumes canStartGame() validation has passed (playerCount divisible by squadSize)
      */
     formSquads() {
         const playerList = Array.from(this.players.values());
 
-        // Shuffle players randomly
+        // Shuffle players randomly using Fisher-Yates
         for (let i = playerList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [playerList[i], playerList[j]] = [playerList[j], playerList[i]];
         }
 
-        // Form squads of squadSize players
-        let squadIndex = 0;
+        // Clear any existing squads
+        this.squads.clear();
 
-        for (let i = 0; i < playerList.length; i += this.squadSize) {
-            const squadId = `squad_${squadIndex + 1}`;
-            const squad = new Squad(squadId);
-
-            const slice = playerList.slice(i, Math.min(i + this.squadSize, playerList.length));
-
-            // Only form a squad if we have at least the minimum size
-            if (slice.length >= this.squadSize) {
-                slice.forEach(player => {
-                    squad.addPlayer(player);
-                    player.squad = squadId;
-                    this.players.set(player.id, player);
-                });
-
-                this.squads.set(squadId, squad);
-                squadIndex++;
-            } else {
-                // Distribute remaining players to existing squads (respect teamSize+1 max)
-                slice.forEach((player, idx) => {
-                    const targetSquadId = `squad_${(idx % squadIndex) + 1}`;
-                    const targetSquad = this.squads.get(targetSquadId);
-                    if (targetSquad && targetSquad.players.length <= this.squadSize) {
-                        targetSquad.addPlayer(player);
-                        player.squad = targetSquadId;
-                        this.players.set(player.id, player);
-                    }
-                });
+        // Form squads of exactly squadSize players
+        const numSquads = Math.floor(playerList.length / this.squadSize);
+        
+        for (let squadIdx = 0; squadIdx < numSquads; squadIdx++) {
+            const squadId = `squad_${squadIdx + 1}`;
+            const squad = new Squad(squadId, this.squadSize);
+            
+            const startIdx = squadIdx * this.squadSize;
+            const endIdx = startIdx + this.squadSize;
+            
+            for (let i = startIdx; i < endIdx; i++) {
+                const player = playerList[i];
+                squad.addPlayer(player);
+                player.squad = squadId;
+                this.players.set(player.id, player);
             }
+            
+            this.squads.set(squadId, squad);
+        }
+
+        // Sanity check: verify all players assigned and squad sizes are correct
+        console.log(`[SQUADS] Formed ${this.squads.size} squads of ${this.squadSize} players each`);
+        for (const [squadId, squad] of this.squads) {
+            console.log(`  ${squadId}: ${squad.players.length} players`);
         }
     }
 

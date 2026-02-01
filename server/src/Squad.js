@@ -4,12 +4,13 @@
  */
 
 class Squad {
-    constructor(id) {
+    constructor(id, teamSize = 4) {
         this.id = id;
         this.players = []; // Array of player objects
         this.scanMap = new Map(); // Maps scannerId -> targetId (who they scanned)
-        this.maxSize = 5;
-        this.minSize = 4;
+        this.teamSize = teamSize;
+        this.maxSize = teamSize; // Exact team size only
+        this.minSize = teamSize;
         this.isLoopComplete = false;
         this.progress = 0; // 0-100 for heist phase
         this.currentMinigame = null;
@@ -93,11 +94,11 @@ class Squad {
 
     /**
      * Check if the circular chain scan is complete
-     * Returns true only when: 1 -> 2 -> 3 -> 4 -> 1 is satisfied
+     * Returns true only when all players have scanned their targets: 1 -> 2 -> 3 -> ... -> 1
      * @returns {boolean}
      */
     checkLoopComplete() {
-        if (this.players.length < this.minSize) {
+        if (this.players.length < 2) {
             return false;
         }
 
