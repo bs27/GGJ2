@@ -8,7 +8,14 @@
 
 Built with **React**, **Socket.io**, and **Device Motion API**, the game bridges the digital and physical worlds, requiring players to communicate verbally and coordinate physically to win.
 
+
+## 🔗 Live Play
+
+- **Player Join:** [protocol-unmask.replit.app](https://protocol-unmask.replit.app)
+- **Game Master:** [protocol-unmask.replit.app/central-command](https://protocol-unmask.replit.app/central-command)
+
 ---
+
 
 ## 🎮 Gameplay Loop
 
